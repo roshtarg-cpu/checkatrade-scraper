@@ -28,12 +28,12 @@ async def main() -> None:
         Actor.log.info(f'Starting Checkatrade scraper')
         Actor.log.info(f'Trade: {trade}, Location: {location}, Max: {max_results}')
         
-        # Get proxy configuration
-        proxy_configuration = await Actor.create_proxy_configuration()
+        # Use proxy from input proxyConfiguration
         proxy_url = None
-        if proxy_configuration:
-            proxy_url = await proxy_configuration.new_url()
-            Actor.log.info(f'Using Apify RESIDENTIAL proxy')
+        if proxy_config_input.get('useApifyProxy'):
+            groups = proxy_config_input.get('apifyProxyGroups', ['RESIDENTIAL'])
+            proxy_url = f"http://auto:{Actor.get_env()['token']}@proxy.apify.com:8000"
+            Actor.log.info(f'Using Apify proxy groups: {groups}')
         
         # Build search URL
         search_url = f'https://www.checkatrade.com/trades/{trade.lower()}'
