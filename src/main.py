@@ -112,6 +112,70 @@ async def main() -> None:
                     
                     Actor.log.info('Parsing page for tradesperson listings...')
                     
+                    # Extract JSON-LD structured data
+                    json_ld_scripts = soup.find_all('script', type='application/ld+json')
+                    
+                    items_data = []
+                    for script in json_ld_scripts:
+                        try:
+                            import json
+                            data = json.loads(script.string)
+                            if data.get('@type') == 'ItemList' and 'itemListElement' in data:
+                                items_data = data['itemListElement']
+                                Actor.log.info(f'Found {len(items_data)} items in JSON-LD structured data')
+                                break
+                        except:
+                            continue
+                    
+                    # If JSON-LD found, extract from there (better data quality)
+                    if items_data:
+                        for item_wrapper in items_data[:max_results]:
+                            try:
+                                item = item_wrapper.get('item', {})
+                                
+                                name = item.get('name')
+                                if not name:
+                                    continue
+                                
+                                url = item.get('url', '')
+                                phone = item.get('telephone', '').replace('+44', '0') if item.get('telephone') else None
+                                
+                                # Get rating data
+                                rating_data = item.get('aggregateRating', {})
+                                rating = rating_data.get('ratingValue')
+                                review_count = rating_data.get('reviewCount')
+                                
+                                # Get location
+                                address = item.get('address', {})
+                                location = address.get('addressLocality') if isinstance(address, dict) else None
+                                
+                                result = {
+                                    'url': url,
+                                    'name': name,
+                                    'phone': phone,
+                                    'trade': trade,
+                                    'rating': str(rating) if rating else None,
+                                    'reviewCount': review_count,
+                                    'location': location,
+                                    'services': None,  # Not in JSON-LD
+                                    'verified': False,  # Not in JSON-LD
+                                    'scrapedAt': datetime.now(timezone.utc).isoformat()
+                                }
+                                
+                                await Actor.push_data(result)
+                                results_count += 1
+                                Actor.log.info(f'Scraped {results_count}/{max_results}: {name}')
+                                
+                            except Exception as e:
+                                Actor.log.error(f'Error extracting item from JSON-LD: {e}')
+                                continue
+                        
+                        Actor.log.info(f'Extraction complete via JSON-LD: {results_count} items')
+                        return
+                    
+                    # Fallback: scrape from HTML if JSON-LD not found
+                    Actor.log.warning('JSON-LD not found, falling back to HTML scraping')
+                    
                     # Find all links to /trades/ profiles
                     trade_links = soup.find_all('a', href=re.compile(r'/trades/[^#]+'))
                     
