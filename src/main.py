@@ -88,8 +88,17 @@ async def main() -> None:
                 
                 try:
                     # Navigate to search page
-                    await page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
-                    await asyncio.sleep(5)  # Wait for JS rendering
+                    await page.goto(search_url, wait_until='networkidle', timeout=90000)
+                    
+                    # Wait for React to render tradesperson links
+                    Actor.log.info('Waiting for content to load...')
+                    try:
+                        await page.wait_for_selector('a[href*="/trades/"]', timeout=15000)
+                        Actor.log.info('Tradesperson links found, waiting for full render...')
+                        await asyncio.sleep(3)  # Let remaining content render
+                    except Exception as e:
+                        Actor.log.warning(f'Selector wait failed: {e}, proceeding anyway...')
+                        await asyncio.sleep(8)  # Fallback wait
                     
                     Actor.log.info('Page loaded, extracting content...')
                     
