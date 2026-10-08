@@ -45,6 +45,9 @@ async def main() -> None:
             Actor.log.info(f'Starting Checkatrade scraper')
             Actor.log.info(f'Trade: {trade}, Location: {location}, Max: {max_results}')
             
+            # Get environment (synchronous in SDK 4.x)
+            env = Actor.get_env()
+            
             # Use proxy from input proxyConfiguration  
             proxy_config = None
             if proxy_config_input.get('useApifyProxy'):
@@ -54,7 +57,7 @@ async def main() -> None:
                 proxy_config = {
                     'server': 'http://proxy.apify.com:8000',
                     'username': f'groups-{group_str}',
-                    'password': Actor.get_env()['token']
+                    'password': env.token
                 }
                 Actor.log.info(f'Using Apify proxy: {group_str}')
             
@@ -67,11 +70,15 @@ async def main() -> None:
             
             results_count = 0
             
-            # Launch Camoufox with stealth (no proxy for testing)
-            async with AsyncCamoufox(
-                headless=True,
-                humanize=True
-            ) as browser:
+            # Launch Camoufox with stealth and proxy
+            browser_kwargs = {
+                'headless': True,
+                'humanize': True
+            }
+            if proxy_config:
+                browser_kwargs['proxy'] = proxy_config
+            
+            async with AsyncCamoufox(**browser_kwargs) as browser:
                 
                 page = await browser.new_page()
                 
@@ -198,17 +205,16 @@ async def main() -> None:
                     await page.close()
             
             # Save metadata
-            env = Actor.get_env()
             await Actor.set_value('SAVED-TASK', {
-                'actorId': env.get('actor_id'),
-            'actorRunId': env.get('actor_run_id'),
-            'defaultDatasetId': env.get('default_dataset_id'),
-            'startedAt': env.get('started_at'),
-            'input': actor_input,
-            'stats': {
-            'resultsScraped': results_count
-            }
-        })
+                'actorId': env.actor_id,
+                'actorRunId': env.actor_run_id,
+                'defaultDatasetId': env.default_dataset_id,
+                'startedAt': env.started_at,
+                'input': actor_input,
+                'stats': {
+                    'resultsScraped': results_count
+                }
+            })
         
         Actor.log.info(f'Scraping complete. Total results: {results_count}')
     
