@@ -131,9 +131,9 @@ async def main() -> None:
                             location_elem = container.find(string=re.compile(r'[A-Z]{1,2}\d{1,2}\s*\d[A-Z]{2}|London|Manchester|Birmingham', re.I))
                         location_text = location_elem.strip() if location_elem else None
                         
-                        # Description
+                        # Business Description
                         desc_elem = container.find('p')
-                        description = desc_elem.get_text(strip=True) if desc_elem else None
+                        business_description = desc_elem.get_text(strip=True) if desc_elem else None
                         
                         # Trade (from input or extract from page)
                         trade_text = trade
@@ -148,7 +148,7 @@ async def main() -> None:
                             'rating': rating,
                             'reviewCount': review_count,
                             'location': location_text,
-                            'description': description,
+                            'businessDescription': business_description,
                             'verified': verified,
                             'scrapedAt': datetime.now(timezone.utc).isoformat()
                         }
