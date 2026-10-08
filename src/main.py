@@ -49,15 +49,19 @@ async def main() -> None:
             env = Actor.get_env()
             
             # Use proxy from input proxyConfiguration  
-            proxy_url = None
+            proxy_config = None
             if proxy_config_input.get('useApifyProxy'):
                 # Get Apify proxy password from environment
                 proxy_password = env.get('proxy_password') or env.get('token')
                 if proxy_password:
                     groups = proxy_config_input.get('apifyProxyGroups', ['RESIDENTIAL'])
                     group_str = ','.join([g.upper() for g in groups])
-                    # Camoufox proxy format: http://groups-RESIDENTIAL:password@proxy.apify.com:8000
-                    proxy_url = f'http://groups-{group_str}:{proxy_password}@proxy.apify.com:8000'
+                    # Camoufox proxy dict format
+                    proxy_config = {
+                        'server': 'http://proxy.apify.com:8000',
+                        'username': f'groups-{group_str}',
+                        'password': proxy_password
+                    }
                     Actor.log.info(f'Using Apify proxy: {group_str}')
             
             # Build search URL
@@ -74,8 +78,8 @@ async def main() -> None:
                 'headless': True,
                 'humanize': True
             }
-            if proxy_url:
-                browser_kwargs['proxy'] = proxy_url
+            if proxy_config:
+                browser_kwargs['proxy'] = proxy_config
             
             async with AsyncCamoufox(**browser_kwargs) as browser:
                 
