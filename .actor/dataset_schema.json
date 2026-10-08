@@ -10,6 +10,10 @@
       "type": "string",
       "title": "Business Name"
     },
+    "phone": {
+      "type": "string",
+      "title": "Phone Number"
+    },
     "trade": {
       "type": "string",
       "title": "Trade"

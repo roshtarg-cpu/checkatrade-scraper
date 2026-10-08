@@ -88,12 +88,17 @@ async def main() -> None:
                 
                 try:
                     # Navigate to search page
-                    Actor.log.info('Loading search page...')
                     await page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
-                    await asyncio.sleep(3)  # Wait for JS rendering
+                    await asyncio.sleep(5)  # Wait for JS rendering
+                    
+                    Actor.log.info('Page loaded, extracting content...')
                     
                     # Get page content
                     html = await page.content()
+                    
+                    # Save HTML for debugging
+                    await Actor.set_value('PAGE_HTML', html[:50000])
+                    
                     soup = BeautifulSoup(html, 'html.parser')
                     
                     Actor.log.info('Parsing page for tradesperson listings...')
@@ -134,6 +139,12 @@ async def main() -> None:
                             if not container:
                                 container = link
                             
+                            # Extract phone number - look for tel: links
+                            phone = None
+                            phone_link = container.find('a', href=re.compile(r'^tel:'))
+                            if phone_link:
+                                phone = phone_link.get('href', '').replace('tel:', '').replace('+44', '0')
+                            
                             # Extract rating - look for decimal numbers
                             rating = None
                             rating_text = container.find(string=re.compile(r'\d+\.\d+'))
@@ -168,6 +179,7 @@ async def main() -> None:
                             result = {
                                 'url': url,
                                 'name': name,
+                                'phone': phone,
                                 'trade': trade,
                                 'rating': rating,
                                 'reviewCount': review_count,
