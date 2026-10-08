@@ -50,11 +50,11 @@ async def main() -> None:
         
         results_count = 0
         
-        # Launch Camoufox with stealth
+        # Launch Camoufox with stealth (geoip=False to avoid proxy check)
         async with AsyncCamoufox(
             headless=True,
             humanize=True,
-            geoip=True,
+            geoip=False,
             proxy=proxy_config
         ) as browser:
             
