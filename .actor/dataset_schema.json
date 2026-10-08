@@ -4,33 +4,27 @@
   "fields": {
     "url": {
       "type": "string",
-      "title": "Profile URL",
-      "description": "Direct link to tradesperson profile"
+      "title": "Profile URL"
     },
     "name": {
       "type": "string",
-      "title": "Business Name",
-      "description": "Tradesperson or company name"
+      "title": "Business Name"
     },
     "trade": {
       "type": "string",
-      "title": "Trade",
-      "description": "Trade category (electrician, plumber, etc.)"
+      "title": "Trade"
     },
     "rating": {
       "type": "string",
-      "title": "Rating",
-      "description": "Star rating score"
+      "title": "Rating"
     },
     "reviewCount": {
       "type": "integer",
-      "title": "Review Count",
-      "description": "Total number of customer reviews"
+      "title": "Review Count"
     },
     "location": {
       "type": "string",
-      "title": "Location",
-      "description": "City, region, or postcode"
+      "title": "Location"
     },
     "description": {
       "type": "string",
@@ -38,13 +32,11 @@
     },
     "verified": {
       "type": "boolean",
-      "title": "Verified",
-      "description": "Whether tradesperson is verified by Checkatrade"
+      "title": "Verified"
     },
     "scrapedAt": {
       "type": "string",
-      "title": "Scraped At",
-      "description": "ISO timestamp when data was collected"
+      "title": "Scraped At"
     }
   },
   "views": {
