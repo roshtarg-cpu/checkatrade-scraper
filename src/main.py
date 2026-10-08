@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urljoin, quote_plus
 
-from apify import Actor, ProxyConfiguration
+from apify import Actor
 from camoufox.async_api import AsyncCamoufox
 from bs4 import BeautifulSoup
 
@@ -29,7 +29,7 @@ async def main() -> None:
         Actor.log.info(f'Trade: {trade}, Location: {location}, Max: {max_results}')
         
         # Get proxy configuration
-        proxy_configuration = await ProxyConfiguration.from_dict(proxy_config_input)
+        proxy_configuration = await Actor.create_proxy_configuration(proxy_config_input)
         proxy_url = None
         if proxy_configuration:
             proxy_url = await proxy_configuration.new_url()
