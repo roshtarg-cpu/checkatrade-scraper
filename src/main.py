@@ -27,11 +27,9 @@ async def main() -> None:
         async with Actor:
             print("Actor context started", file=sys.stderr, flush=True)
             
-            # Get input (synchronous in SDK 4.x)
+            # Get input (SDK 4.x uses get_input())
             try:
-                env = Actor.get_env()
-                print(f"Got env: {env is not None}", file=sys.stderr, flush=True)
-                actor_input = env.get('input') if env and env.get('input') else {}
+                actor_input = await Actor.get_input() or {}
                 print(f"Got input: {actor_input}", file=sys.stderr, flush=True)
             except Exception as e:
                 print(f"Error getting input: {e}", file=sys.stderr, flush=True)
