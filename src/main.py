@@ -52,12 +52,11 @@ async def main() -> None:
             proxy_config = None
             if proxy_config_input.get('useApifyProxy'):
                 groups = proxy_config_input.get('apifyProxyGroups', ['RESIDENTIAL'])
-                group_str = ','.join(groups)
+                group_str = ','.join([g.upper() for g in groups])
                 # Camoufox proxy format for Apify
+                # Format: http://groups-RESIDENTIAL:<token>@proxy.apify.com:8000
                 proxy_config = {
-                    'server': 'http://proxy.apify.com:8000',
-                    'username': f'groups-{group_str}',
-                    'password': env['token']
+                    'server': f'http://groups-{group_str}:{env["token"]}@proxy.apify.com:8000'
                 }
                 Actor.log.info(f'Using Apify proxy: {group_str}')
             
