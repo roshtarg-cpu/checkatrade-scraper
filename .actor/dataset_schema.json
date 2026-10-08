@@ -34,8 +34,7 @@
     },
     "description": {
       "type": "string",
-      "title": "Description",
-      "description": "Business description or services offered"
+      "title": "Description"
     },
     "verified": {
       "type": "boolean",
