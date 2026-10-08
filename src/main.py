@@ -29,11 +29,11 @@ async def main() -> None:
         Actor.log.info(f'Trade: {trade}, Location: {location}, Max: {max_results}')
         
         # Get proxy configuration
-        proxy_configuration = await Actor.create_proxy_configuration(proxy_config_input)
+        proxy_configuration = await Actor.create_proxy_configuration()
         proxy_url = None
         if proxy_configuration:
             proxy_url = await proxy_configuration.new_url()
-            Actor.log.info(f'Using proxy: {proxy_config_input.get("apifyProxyGroups")}')
+            Actor.log.info(f'Using Apify RESIDENTIAL proxy')
         
         # Build search URL
         search_url = f'https://www.checkatrade.com/trades/{trade.lower()}'
