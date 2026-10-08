@@ -3,17 +3,29 @@ Checkatrade Scraper - Extract UK tradespeople listings
 """
 import asyncio
 import re
+import sys
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urljoin, quote_plus
 
-from apify import Actor
-from camoufox.async_api import AsyncCamoufox
-from bs4 import BeautifulSoup
+print("Starting checkatrade-scraper...", file=sys.stderr, flush=True)
+
+try:
+    from apify import Actor
+    from camoufox.async_api import AsyncCamoufox
+    from bs4 import BeautifulSoup
+    print("Imports successful", file=sys.stderr, flush=True)
+except Exception as e:
+    print(f"Import error: {e}", file=sys.stderr, flush=True)
+    raise
 
 
 async def main() -> None:
-    async with Actor:
+    print("Entering main()", file=sys.stderr, flush=True)
+    
+    try:
+        async with Actor:
+            print("Actor context started", file=sys.stderr, flush=True)
         # Get input (synchronous in SDK 4.x)
         actor_input = Actor.get_env()['input'] if Actor.get_env().get('input') else {}
         
@@ -194,3 +206,9 @@ async def main() -> None:
         })
         
         Actor.log.info(f'Scraping complete. Total results: {results_count}')
+    
+    except Exception as e:
+        print(f"ERROR in main: {e}", file=sys.stderr, flush=True)
+        import traceback
+        traceback.print_exc()
+        raise
