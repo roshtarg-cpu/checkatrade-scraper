@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urljoin, quote_plus
 
-from apify import Actor
+from apify import Actor, ProxyConfiguration
 from camoufox.async_api import AsyncCamoufox
 from bs4 import BeautifulSoup
 
@@ -20,7 +20,7 @@ async def main() -> None:
         trade = actor_input.get('trade', 'electricians')
         location = actor_input.get('location', 'London')
         max_results = actor_input.get('maxResults', 3)
-        proxy_config = actor_input.get('proxyConfiguration', {
+        proxy_config_input = actor_input.get('proxyConfiguration', {
             'useApifyProxy': True,
             'apifyProxyGroups': ['RESIDENTIAL']
         })
@@ -28,13 +28,12 @@ async def main() -> None:
         Actor.log.info(f'Starting Checkatrade scraper')
         Actor.log.info(f'Trade: {trade}, Location: {location}, Max: {max_results}')
         
-        # Get proxy URL
+        # Get proxy configuration
+        proxy_configuration = await ProxyConfiguration.from_dict(proxy_config_input)
         proxy_url = None
-        if proxy_config.get('useApifyProxy'):
-            proxy_url = Actor.create_proxy_url(
-                groups=proxy_config.get('apifyProxyGroups', ['RESIDENTIAL'])
-            )
-            Actor.log.info(f'Using Apify proxy: {proxy_config.get("apifyProxyGroups")}')
+        if proxy_configuration:
+            proxy_url = await proxy_configuration.new_url()
+            Actor.log.info(f'Using proxy: {proxy_config_input.get("apifyProxyGroups")}')
         
         # Build search URL
         search_url = f'https://www.checkatrade.com/trades/{trade.lower()}'
