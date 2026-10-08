@@ -32,13 +32,14 @@ async def main() -> None:
         proxy_config = None
         if proxy_config_input.get('useApifyProxy'):
             groups = proxy_config_input.get('apifyProxyGroups', ['RESIDENTIAL'])
-            # Camoufox proxy format
+            group_str = ','.join(groups)
+            # Camoufox proxy format for Apify
             proxy_config = {
                 'server': 'http://proxy.apify.com:8000',
-                'username': 'auto',
+                'username': f'groups-{group_str}',
                 'password': Actor.get_env()['token']
             }
-            Actor.log.info(f'Using Apify proxy groups: {groups}')
+            Actor.log.info(f'Using Apify proxy: {group_str}')
         
         # Build search URL
         search_url = f'https://www.checkatrade.com/trades/{trade.lower()}'
