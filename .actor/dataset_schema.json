@@ -1,0 +1,80 @@
+{
+  "$schema": "https://apify.com/schemas/v1/dataset.ide.json",
+  "actorSpecification": 1,
+  "fields": {
+    "url": {
+      "type": "string",
+      "title": "Profile URL",
+      "description": "Direct link to tradesperson profile"
+    },
+    "name": {
+      "type": "string",
+      "title": "Business Name",
+      "description": "Tradesperson or company name"
+    },
+    "trade": {
+      "type": "string",
+      "title": "Trade",
+      "description": "Trade category (electrician, plumber, etc.)"
+    },
+    "rating": {
+      "type": "string",
+      "title": "Rating",
+      "description": "Star rating score"
+    },
+    "reviewCount": {
+      "type": "integer",
+      "title": "Review Count",
+      "description": "Total number of customer reviews"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location",
+      "description": "City, region, or postcode"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "description": "Business description or services offered"
+    },
+    "verified": {
+      "type": "boolean",
+      "title": "Verified",
+      "description": "Whether tradesperson is verified by Checkatrade"
+    },
+    "scrapedAt": {
+      "type": "string",
+      "title": "Scraped At",
+      "description": "ISO timestamp when data was collected"
+    }
+  },
+  "views": {
+    "overview": {
+      "title": "Overview",
+      "transformation": {
+        "fields": ["name", "trade", "rating", "location"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "name": {
+            "label": "Business Name",
+            "format": "text"
+          },
+          "trade": {
+            "label": "Trade",
+            "format": "text"
+          },
+          "rating": {
+            "label": "Rating",
+            "format": "text"
+          },
+          "location": {
+            "label": "Location",
+            "format": "text"
+          }
+        }
+      }
+    }
+  }
+}

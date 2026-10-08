@@ -1,0 +1,68 @@
+{
+  "$schema": "https://apify.com/schemas/v1/input.ide.json",
+  "title": "Input schema",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "trade": {
+      "type": "string",
+      "title": "Trade Category",
+      "description": "Type of tradesperson to search for",
+      "editor": "select",
+      "enum": [
+        "electricians",
+        "plumbers",
+        "builders",
+        "carpenters",
+        "painters-decorators",
+        "roofers",
+        "gardeners",
+        "heating-engineers",
+        "bathroom-fitters",
+        "kitchen-fitters",
+        "plasterers",
+        "tilers",
+        "locksmiths",
+        "window-fitters",
+        "flooring-specialists"
+      ],
+      "prefill": "electricians"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location",
+      "description": "City, town, or postcode to search near",
+      "editor": "textfield",
+      "prefill": "London"
+    },
+    "minRating": {
+      "type": "number",
+      "title": "Minimum Rating",
+      "description": "Filter by minimum star rating (leave 0 for no filter)",
+      "editor": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "prefill": 0
+    },
+    "maxResults": {
+      "type": "integer",
+      "title": "Max Results",
+      "description": "Maximum number of tradespeople to scrape",
+      "default": 3,
+      "minimum": 1,
+      "maximum": 10000,
+      "editor": "number",
+      "prefill": 3
+    },
+    "proxyConfiguration": {
+      "type": "object",
+      "title": "Proxy Configuration",
+      "description": "Select proxy group (RESIDENTIAL required for Cloudflare bypass)",
+      "editor": "proxy",
+      "default": {
+        "useApifyProxy": true,
+        "apifyProxyGroups": ["RESIDENTIAL"]
+      }
+    }
+  }
+}
