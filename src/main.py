@@ -105,8 +105,8 @@ async def main() -> None:
                     # Get page content
                     html = await page.content()
                     
-                    # Save HTML for debugging
-                    await Actor.set_value('PAGE_HTML', html[:50000])
+                    # Save FULL HTML for debugging (first 200KB)
+                    await Actor.set_value('PAGE_HTML', html[:200000])
                     
                     soup = BeautifulSoup(html, 'html.parser')
                     
