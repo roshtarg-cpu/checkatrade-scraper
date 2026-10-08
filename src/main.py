@@ -28,11 +28,16 @@ async def main() -> None:
         Actor.log.info(f'Starting Checkatrade scraper')
         Actor.log.info(f'Trade: {trade}, Location: {location}, Max: {max_results}')
         
-        # Use proxy from input proxyConfiguration
-        proxy_url = None
+        # Use proxy from input proxyConfiguration  
+        proxy_config = None
         if proxy_config_input.get('useApifyProxy'):
             groups = proxy_config_input.get('apifyProxyGroups', ['RESIDENTIAL'])
-            proxy_url = f"http://auto:{Actor.get_env()['token']}@proxy.apify.com:8000"
+            # Camoufox proxy format
+            proxy_config = {
+                'server': 'http://proxy.apify.com:8000',
+                'username': 'auto',
+                'password': Actor.get_env()['token']
+            }
             Actor.log.info(f'Using Apify proxy groups: {groups}')
         
         # Build search URL
@@ -49,7 +54,7 @@ async def main() -> None:
             headless=True,
             humanize=True,
             geoip=True,
-            proxy=proxy_url
+            proxy=proxy_config
         ) as browser:
             
             page = await browser.new_page()
