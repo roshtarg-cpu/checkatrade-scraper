@@ -49,16 +49,16 @@ async def main() -> None:
             env = Actor.get_env()
             
             # Use proxy from input proxyConfiguration  
-            proxy_config = None
+            proxy_url = None
             if proxy_config_input.get('useApifyProxy'):
-                groups = proxy_config_input.get('apifyProxyGroups', ['RESIDENTIAL'])
-                group_str = ','.join([g.upper() for g in groups])
-                # Camoufox proxy format for Apify
-                # Format: http://groups-RESIDENTIAL:<token>@proxy.apify.com:8000
-                proxy_config = {
-                    'server': f'http://groups-{group_str}:{env["token"]}@proxy.apify.com:8000'
-                }
-                Actor.log.info(f'Using Apify proxy: {group_str}')
+                # Get Apify proxy password from environment
+                proxy_password = env.get('proxy_password') or env.get('token')
+                if proxy_password:
+                    groups = proxy_config_input.get('apifyProxyGroups', ['RESIDENTIAL'])
+                    group_str = ','.join([g.upper() for g in groups])
+                    # Camoufox proxy format: http://groups-RESIDENTIAL:password@proxy.apify.com:8000
+                    proxy_url = f'http://groups-{group_str}:{proxy_password}@proxy.apify.com:8000'
+                    Actor.log.info(f'Using Apify proxy: {group_str}')
             
             # Build search URL
             search_url = f'https://www.checkatrade.com/trades/{trade.lower()}'
@@ -74,8 +74,8 @@ async def main() -> None:
                 'headless': True,
                 'humanize': True
             }
-            if proxy_config:
-                browser_kwargs['proxy'] = proxy_config
+            if proxy_url:
+                browser_kwargs['proxy'] = proxy_url
             
             async with AsyncCamoufox(**browser_kwargs) as browser:
                 
