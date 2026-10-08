@@ -65,9 +65,10 @@ async def main() -> None:
                     Actor.log.info(f'Using Apify proxy: {group_str}')
             
             # Build search URL
-            search_url = f'https://www.checkatrade.com/trades/{trade.lower()}'
-            if location:
-                search_url = f'https://www.checkatrade.com/trades/{trade.lower()}/near/{quote_plus(location)}'
+            # Format: /Search/Electrician/in/London
+            # Capitalize first letter of trade
+            trade_capitalized = trade.replace('-', ' ').title().replace(' ', '-')
+            search_url = f'https://www.checkatrade.com/Search/{trade_capitalized}/in/{location}'
             
             Actor.log.info(f'Search URL: {search_url}')
             
