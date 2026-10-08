@@ -45,7 +45,7 @@ async def main() -> None:
             Actor.log.info(f'Starting Checkatrade scraper')
             Actor.log.info(f'Trade: {trade}, Location: {location}, Max: {max_results}')
             
-            # Get environment (synchronous in SDK 4.x)
+            # Get environment (synchronous in SDK 4.x - returns dict)
             env = Actor.get_env()
             
             # Use proxy from input proxyConfiguration  
@@ -57,7 +57,7 @@ async def main() -> None:
                 proxy_config = {
                     'server': 'http://proxy.apify.com:8000',
                     'username': f'groups-{group_str}',
-                    'password': env.token
+                    'password': env['token']
                 }
                 Actor.log.info(f'Using Apify proxy: {group_str}')
             
@@ -206,10 +206,10 @@ async def main() -> None:
             
             # Save metadata
             await Actor.set_value('SAVED-TASK', {
-                'actorId': env.actor_id,
-                'actorRunId': env.actor_run_id,
-                'defaultDatasetId': env.default_dataset_id,
-                'startedAt': env.started_at,
+                'actorId': env.get('actor_id'),
+                'actorRunId': env.get('actor_run_id'),
+                'defaultDatasetId': env.get('default_dataset_id'),
+                'startedAt': env.get('started_at'),
                 'input': actor_input,
                 'stats': {
                     'resultsScraped': results_count
