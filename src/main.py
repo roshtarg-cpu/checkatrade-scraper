@@ -96,101 +96,91 @@ async def main() -> None:
                     html = await page.content()
                     soup = BeautifulSoup(html, 'html.parser')
                     
-                    # Multiple selector strategies for tradesperson cards
-                    containers = set()
+                    Actor.log.info('Parsing page for tradesperson listings...')
                     
-                    # Strategy 1: data attributes
-                    for elem in soup.find_all(attrs={'data-testid': re.compile(r'tradesperson|card|listing', re.I)}):
-                        containers.add(elem)
+                    # Find all links to /trades/ profiles
+                    trade_links = soup.find_all('a', href=re.compile(r'/trades/[^#]+'))
                     
-                    # Strategy 2: article elements with links
-                    for elem in soup.find_all('article'):
-                        if elem.find('a'):
-                            containers.add(elem)
+                    Actor.log.info(f'Found {len(trade_links)} tradesperson links')
                     
-                    # Strategy 3: divs with tradesperson/card/listing classes
-                    if not containers:
-                        for elem in soup.find_all('div', class_=re.compile(r'tradesperson|card|listing|result', re.I)):
-                            if elem.find('a'):
-                                containers.add(elem)
+                    seen_urls = set()
                     
-                    # Strategy 4: links with /tradespeople/ in href
-                    if not containers:
-                        for link in soup.find_all('a', href=re.compile(r'/tradespeople/')):
-                            parent = link.find_parent(['div', 'article', 'li'])
-                            if parent:
-                                containers.add(parent)
-                    
-                    containers = list(containers)
-                    Actor.log.info(f'Found {len(containers)} listing containers')
-                    
-                    # Extract data from each container
-                    for container in containers[:max_results]:
+                    # Extract data from each link
+                    for link in trade_links:
+                        if results_count >= max_results:
+                            break
+                            
                         try:
-                            # URL
-                            link_elem = container.find('a', href=re.compile(r'/tradespeople/'))
-                            if not link_elem:
-                                link_elem = container.find('a')
-                            url = urljoin('https://www.checkatrade.com', link_elem['href']) if link_elem and link_elem.get('href') else None
+                            # Get URL
+                            href = link.get('href', '')
+                            if not href or '#' not in href:
+                                continue
                             
-                            # Name
-                            name_elem = container.find(['h2', 'h3', 'h4'])
-                            if not name_elem:
-                                name_elem = link_elem
-                            name = name_elem.get_text(strip=True) if name_elem else None
+                            # Clean URL (remove query params)
+                            url = urljoin('https://www.checkatrade.com', href.split('#')[0])
                             
-                            # Rating
-                            rating_elem = container.find(string=re.compile(r'\d+\.\d+|★|stars?', re.I))
+                            # Skip duplicates
+                            if url in seen_urls:
+                                continue
+                            seen_urls.add(url)
+                            
+                            # Get name from link text
+                            name = link.get_text(strip=True)
+                            if not name or len(name) < 3:
+                                continue
+                            
+                            # Find parent container for rating/reviews
+                            container = link.find_parent(['div', 'article', 'li'])
+                            if not container:
+                                container = link
+                            
+                            # Extract rating - look for decimal numbers
                             rating = None
-                            if rating_elem:
-                                rating_match = re.search(r'(\d+\.\d+)', str(rating_elem))
+                            rating_text = container.find(string=re.compile(r'\d+\.\d+'))
+                            if rating_text:
+                                rating_match = re.search(r'(\d+\.\d+)', str(rating_text))
                                 if rating_match:
                                     rating = rating_match.group(1)
                             
-                            # Review count
-                            review_elem = container.find(string=re.compile(r'\d+\s*(review|rating)', re.I))
+                            # Extract review count - look for (N reviews)
                             review_count = None
-                            if review_elem:
-                                review_match = re.search(r'(\d+)', str(review_elem))
+                            review_text = container.find(string=re.compile(r'\(\d+\s*review', re.I))
+                            if review_text:
+                                review_match = re.search(r'\((\d+)', str(review_text))
                                 if review_match:
                                     review_count = int(review_match.group(1))
                             
-                            # Location
-                            location_elem = container.find(string=re.compile(r'based in|location|area', re.I))
-                            if not location_elem:
-                                # Try to find any text that looks like a UK city/postcode
-                                location_elem = container.find(string=re.compile(r'[A-Z]{1,2}\d{1,2}\s*\d[A-Z]{2}|London|Manchester|Birmingham', re.I))
-                            location_text = location_elem.strip() if location_elem else None
+                            # Extract location - look for "Operates in"
+                            location_text = None
+                            loc_elem = container.find(string=re.compile(r'Operates in', re.I))
+                            if loc_elem:
+                                location_text = re.sub(r'Operates in\s*', '', str(loc_elem), flags=re.I).strip()
                             
-                            # Business Description
-                            desc_elem = container.find('p')
-                            business_description = desc_elem.get_text(strip=True) if desc_elem else None
-                            
-                            # Trade (from input or extract from page)
-                            trade_text = trade
-                            
-                            # Verified status
-                            verified = bool(container.find(string=re.compile(r'verified|endorsed|approved', re.I)))
+                            # Extract services - look for "Services & skills"
+                            services = []
+                            services_section = container.find(string=re.compile(r'Services & skills', re.I))
+                            if services_section:
+                                services_container = services_section.find_parent()
+                                if services_container:
+                                    service_texts = services_container.find_all(string=True)
+                                    services = [s.strip() for s in service_texts if s.strip() and s.strip() != 'Services & skills'][:5]
                             
                             result = {
                                 'url': url,
                                 'name': name,
-                                'trade': trade_text,
+                                'trade': trade,
                                 'rating': rating,
                                 'reviewCount': review_count,
                                 'location': location_text,
-                                'businessDescription': business_description,
-                                'verified': verified,
+                                'services': ', '.join(services) if services else None,
+                                'verified': bool(container.find(string=re.compile(r'verified|sponsored', re.I))),
                                 'scrapedAt': datetime.now(timezone.utc).isoformat()
                             }
                             
                             # Push immediately
                             await Actor.push_data(result)
                             results_count += 1
-                            Actor.log.info(f'Scraped: {name or "Unknown"} ({results_count}/{max_results})')
-                            
-                            if results_count >= max_results:
-                                break
+                            Actor.log.info(f'Scraped {results_count}/{max_results}: {name}')
                         
                         except Exception as e:
                             Actor.log.warning(f'Error extracting item: {e}')

@@ -26,9 +26,9 @@
       "type": "string",
       "title": "Location"
     },
-    "businessDescription": {
+    "services": {
       "type": "string",
-      "title": "Business Description"
+      "title": "Services"
     },
     "verified": {
       "type": "boolean",
